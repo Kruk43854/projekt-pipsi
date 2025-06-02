@@ -1,0 +1,10 @@
+pl\usterkimiejskie\usterkimiejskie\UsterkiMiejskieApplication.class
+pl\usterkimiejskie\usterkimiejskie\entity\Usterka.class
+pl\usterkimiejskie\usterkimiejskie\repository\UsterkaRepository.class
+pl\usterkimiejskie\usterkimiejskie\repository\RoleRepository.class
+pl\usterkimiejskie\usterkimiejskie\entity\User.class
+pl\usterkimiejskie\usterkimiejskie\repository\UserRepository.class
+pl\usterkimiejskie\usterkimiejskie\entity\StatusUsterki.class
+pl\usterkimiejskie\usterkimiejskie\dto\UsterkaDto.class
+pl\usterkimiejskie\usterkimiejskie\entity\Role.class
+pl\usterkimiejskie\usterkimiejskie\service\UsterkaService.class
