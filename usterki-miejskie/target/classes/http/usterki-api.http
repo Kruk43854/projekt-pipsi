@@ -1,0 +1,70 @@
+### Zmienna środowiskowa (ustaw na początku pliku)
+@baseUrl = http://localhost:8080/api
+
+### Żądanie 1: Utwórz nową usterkę (POST)
+# Oczekujemy: HTTP 201 Created
+POST {{baseUrl}}/usterki
+Content-Type: application/json
+Accept: application/json
+
+{
+  "miasto": "Gdynia",
+  "ulica": "Świętojańska",
+  "numerDomu": "20",
+  "opis": "Uszkodzona ławka w parku.",
+  "status": "ZGLOSZONA" // Możesz to pole pominąć, jeśli Twój UsterkaService ustawia domyślny status
+}
+
+### Separator
+###
+
+### Żądanie 2: Pobierz wszystkie usterki (GET)
+# Oczekujemy: HTTP 200 OK i listę usterek (w tym tę z Żądania 1)
+GET {{baseUrl}}/usterki
+Accept: application/json
+
+### Separator
+###
+
+# Po wykonaniu Żądania 1, sprawdź w odpowiedzi jakie ID dostała nowo utworzona usterka.
+# Załóżmy, że dostała ID = 1 (lub inne, które zobaczysz).
+# Zastąp '1' poniżej faktycznym ID.
+@usterkaId = 1
+
+### Żądanie 3: Pobierz usterkę o konkretnym ID (GET)
+# Oczekujemy: HTTP 200 OK i dane usterki o ID @usterkaId
+GET {{baseUrl}}/usterki/{{usterkaId}}
+Accept: application/json
+
+### Separator
+###
+
+### Żądanie 4: Zaktualizuj usterkę o ID @usterkaId (PUT)
+# Oczekujemy: HTTP 200 OK i zaktualizowane dane usterki
+PUT {{baseUrl}}/usterki/{{usterkaId}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "miasto": "Gdynia",
+  "ulica": "Świętojańska",
+  "numerDomu": "20",
+  "opis": "Uszkodzona ławka w parku została naprawiona przez mieszkańców.",
+  "status": "NAPRAWIONA"
+}
+
+### Separator
+###
+
+### Żądanie 5: Usuń usterkę o ID @usterkaId (DELETE)
+# Oczekujemy: HTTP 204 No Content
+DELETE {{baseUrl}}/usterki/{{usterkaId}}
+Accept: application/json
+
+### Separator
+###
+
+### Żądanie 6: Spróbuj pobrać usuniętą usterkę (GET) - test dla 404
+# Oczekujemy: HTTP 404 Not Found (dzięki GlobalExceptionHandler)
+GET {{baseUrl}}/usterki/{{usterkaId}}
+Accept: application/json
