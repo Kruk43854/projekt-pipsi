@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Lista usterek</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body class="d-flex flex-column min-vh-100">
+  <div class="flex-grow-1">
+    <div id="navbar"></div>
+
+    <div class="container my-5">
+      <h2 class="mt-3">Mapa usterek</h2>
+      <div id="map" style="height: 500px;" class="rounded shadow d-nonem mb-3"></div>
+
+      <div class="row align-items-center mb-4">
+        <div class="col">
+          <h2 class="mt-3">Zgłoszone usterki</h2>
+        </div>
+        <div class="col-auto text-end">
+          <a href="/dodaj-usterke" class="btn btn-secondary">Dodaj nową usterkę</a>
+        </div>
+      </div>
+
+      <!-- 🔎 Filtry -->
+      <form class="row g-3 mb-4">
+        <div class="col-md-4">
+          <input type="text" class="form-control" id="filtrMiasto" placeholder="Miasto...">
+        </div>
+        <div class="col-md-4">
+          <select class="form-select" id="filtrStatus">
+            <option value="">Wszystkie statusy</option>
+            <option value="Oczekuje">Oczekuje</option>
+            <option value="W trakcie">W trakcie</option>
+            <option value="Naprawione">Naprawione</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <input type="text" class="form-control" id="filtrTyp" placeholder="Rodzaj usterki...">
+        </div>
+      </form>
+
+
+      <div class="row g-4 mb-4" id="usterki"></div>
+      <div id="brak" class="alert alert-info d-none">Brak pasujących usterek.</div>
+
+
+
+    </div>
+  </div>
+
+  <div id="footer"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    let wszystkieUsterki = [];
+    let mapa;
+    let markery = [];
+
+    const usterkiDiv = document.getElementById("usterki");
+    const brakDiv = document.getElementById("brak");
+    const mapDiv = document.getElementById("map");
+
+    const filtrMiasto = document.getElementById("filtrMiasto");
+    const filtrStatus = document.getElementById("filtrStatus");
+    const filtrTyp = document.getElementById("filtrTyp");
+
+
+fetch("includes/navbar.html").then(res => res.text()).then(html => {
+  document.getElementById("navbar").innerHTML = html;
+
+  const user = JSON.parse(localStorage.getItem("loggedUser"));
+  const userLabel = document.getElementById("userLabel");
+  const usernameNav = document.getElementById("usernameNav");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const mojeZgloszenia = document.getElementById("mojeZgloszenia");
+
+  if (userLabel) userLabel.textContent = `Zalogowany jako: ${user.username}`;
+  if (usernameNav && user?.username) usernameNav.textContent = user.username;
+  if (mojeZgloszenia) {
+    mojeZgloszenia.addEventListener("click", () => {
+      window.location.href = "/moje-zgloszenia";
+    });
+  }
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("loggedUser");
+      window.location.href = "/logowanie";
+    });
+  }
+});
+
+
+
+    fetch("includes/footer.html")
+      .then(res => res.text())
+      .then(html => document.getElementById("footer").innerHTML = html);
+      
+
+    fetch("http://localhost:8080/api/usterki")
+      .then(res => res.json())
+      .then(data => {
+        wszystkieUsterki = data;
+        pokazUsterki(data);
+        ustawMape();
+        dodajMarkery(data);
+      });
+
+    function pokazUsterki(lista) {
+      usterkiDiv.innerHTML = "";
+      if (lista.length === 0) {
+        brakDiv.classList.remove("d-none");
+        return;
+      } else {
+        brakDiv.classList.add("d-none");
+      }
+
+      lista.forEach(usterka => {
+        const card = document.createElement("div");
+        card.className = "col-md-6 col-lg-4";
+        card.innerHTML = `
+          <div class="card h-100 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">${usterka.tytul}</h5>
+              <p class="card-text">
+                <strong>Status:</strong>
+                <span class="badge ${getBadgeClass(usterka.status)}">${usterka.status}</span><br>
+                <strong>Adres:</strong> ${usterka.adres}
+              </p>
+              <a href="/usterka?id=${usterka.id}" class="btn btn-primary">Szczegóły</a>
+            </div>
+          </div>
+        `;
+        usterkiDiv.appendChild(card);
+      });
+    }
+
+    function getBadgeClass(status) {
+      if (status === "Naprawione") return "bg-success text-white";
+      if (status === "W trakcie") return "bg-warning text-dark";
+      return "bg-info text-white";
+    }
+
+    function ustawMape() {
+      mapa = L.map('map').setView([51.2100, 16.1619], 16);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap"
+      }).addTo(mapa);
+      mapDiv.classList.remove("d-none");
+      setTimeout(() => {
+    mapa.invalidateSize();
+  }, 100);
+}
+
+    function dodajMarkery(lista) {
+      markery.forEach(m => mapa.removeLayer(m));
+      markery = [];
+
+      lista.forEach(u => {
+        if (u.lat && u.lng) {
+          const marker = L.marker([u.lat, u.lng])
+            .addTo(mapa)
+            .bindPopup(`<strong>${u.tytul}</strong><br>${u.adres}`);
+          markery.push(marker);
+        }
+      });
+
+      if (markery.length > 0) {
+        const grupa = new L.featureGroup(markery);
+        mapa.fitBounds(grupa.getBounds(), { padding: [20, 20] });
+      }
+    }
+
+    function filtrujUsterki() {
+      const miasto = filtrMiasto.value.toLowerCase().trim();
+      const status = filtrStatus.value;
+      const typ = filtrTyp.value.toLowerCase().trim();
+
+      const wynik = wszystkieUsterki.filter(u => {
+        const adresPasuje = !miasto || (u.adres && u.adres.toLowerCase().includes(miasto));
+        const statusPasuje = !status || u.status === status;
+        const typPasuje = !typ || (u.tytul && u.tytul.toLowerCase().includes(typ));
+        return adresPasuje && statusPasuje && typPasuje;
+      });
+
+      pokazUsterki(wynik);
+      dodajMarkery(wynik);
+    }
+
+    filtrMiasto.addEventListener("input", filtrujUsterki);
+    filtrStatus.addEventListener("change", filtrujUsterki);
+    filtrTyp.addEventListener("input", filtrujUsterki);
+  </script>
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

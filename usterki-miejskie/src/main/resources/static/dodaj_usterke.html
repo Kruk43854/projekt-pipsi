@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Zgłoś usterkę</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body class="d-flex flex-column min-vh-100">
+  <div class="flex-grow-1">
+    <div id="navbar"></div>
+
+    <div class="container my-5">
+      <div class="row align-items-center mb-4">
+        <div class="col">
+          <h2 class="mb-0">Zgłaszanie nowej usterki</h2>
+        </div>
+        <div class="col-auto text-end">
+          <a href="/lista-usterek" class="btn btn-secondary">Wróć do listy usterek</a>
+        </div>
+      </div>  
+
+      <form id="usterkaForm">
+        <div class="mb-3">
+          <label for="tytul" class="form-label">Tytuł usterki</label>
+          <input type="text" class="form-control" id="tytul" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Wybierz lokalizację na mapie:</label>
+          <div id="map" style="height: 400px;" class="rounded shadow"></div>
+        </div>
+
+        <div class="mb-3">
+          <label for="adres" class="form-label">Wybrany adres:</label>
+          <input type="text" class="form-control" id="adres" readonly required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Zgłoś usterkę</button>
+      </form>
+
+      <div class="alert alert-warning mt-3 d-none" id="alert">Nie znaleziono lokalizacji.</div>
+      <div class="alert alert-success mt-3 d-none" id="success">Zgłoszenie zostało dodane!</div>
+    </div>
+  </div>
+
+  <div id="footer"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+
+fetch("includes/navbar.html").then(res => res.text()).then(html => {
+  document.getElementById("navbar").innerHTML = html;
+
+  const user = JSON.parse(localStorage.getItem("loggedUser"));
+  const userLabel = document.getElementById("userLabel");
+  const usernameNav = document.getElementById("usernameNav");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const mojeZgloszenia = document.getElementById("mojeZgloszenia");
+
+  if (userLabel) userLabel.textContent = `Zalogowany jako: ${user.username}`;
+  if (usernameNav && user?.username) usernameNav.textContent = user.username;
+  if (mojeZgloszenia) {
+    mojeZgloszenia.addEventListener("click", () => {
+      window.location.href = "/moje-zgloszenia";
+    });
+  }
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("loggedUser");
+      window.location.href = "/logowanie";
+    });
+  }
+});
+
+
+
+    fetch("includes/footer.html")
+      .then(res => res.text())
+      .then(html => document.getElementById("footer").innerHTML = html);
+
+
+    let selectedCoords = null;
+    const mapa = L.map('map').setView([51.2100, 16.1619], 16);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(mapa);
+
+    let marker = null;
+    mapa.on("click", async function (e) {
+      selectedCoords = e.latlng;
+      if (marker) mapa.removeLayer(marker);
+      marker = L.marker(selectedCoords).addTo(mapa);
+
+      const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${selectedCoords.lat}&lon=${selectedCoords.lng}`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      const road = data.address.road || "";
+      const house = data.address.house_number || "";
+      const city = data.address.city || data.address.town || data.address.village || "";
+      const fullAddress = `${road} ${house}, ${city}`.trim().replace(/^, /, "");
+      document.getElementById("adres").value = fullAddress || "Nieznany adres";
+    });
+
+
+    document.getElementById("usterkaForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const tytul = document.getElementById("tytul").value;
+      const adres = document.getElementById("adres").value;
+      const alertBox = document.getElementById("alert");
+      const successBox = document.getElementById("success");
+      const user = JSON.parse(localStorage.getItem("loggedUser"));
+
+      if (!selectedCoords || !adres) {
+        alertBox.classList.remove("d-none");
+        successBox.classList.add("d-none");
+        return;
+      }
+
+      const nowaUsterka = {
+  tytul,
+  status: "Oczekuje",
+  adres,
+  lat: selectedCoords.lat,
+  lng: selectedCoords.lng,
+  userId: user.id
+};
+
+const res = await fetch("http://localhost:8080/api/usterki", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(nowaUsterka),
+  credentials: "include"
+});
+
+const saved = await res.json();
+alert(`Zgłoszenie zostało dodane!`);
+
+
+
+      if (res.ok) {
+        successBox.textContent = `Zgłoszenie zostało dodane!`;
+        successBox.classList.remove("d-none");
+        alertBox.classList.add("d-none");
+        e.target.reset();
+        if (marker) mapa.removeLayer(marker);
+        selectedCoords = null;
+      }
+    });
+  </script>
+    
+  
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

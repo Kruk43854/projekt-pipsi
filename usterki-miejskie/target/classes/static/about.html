@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>O aplikacji – UsterkiApp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+<div class="flex-grow-1">
+  <div id="navbar"></div>
+
+  <main class="container flex-grow-1 py-4">
+    <h1 class="mb-4">O aplikacji</h1>
+
+<section class="bg-light py-5">
+  <div class="container">
+    <h2 class="text-center mb-5">Nasza misja</h2>
+
+    <div class="row align-items-center">
+      <div class="col-lg-12 mb-4">
+        <p>UsterkiApp powstało z potrzeby usprawnienia codziennej komunikacji między mieszkańcami a jednostkami odpowiedzialnymi za infrastrukturę miejską. Zbyt często drobne, ale istotne problemy — takie jak uszkodzona latarnia, dziura w chodniku czy niedziałająca sygnalizacja — pozostają niezauważone przez odpowiednie służby lub są zgłaszane w nieefektywny sposób.</p>
+
+        <p>Naszym celem jest stworzenie narzędzia, które umożliwi każdemu obywatelowi szybkie i intuicyjne zgłaszanie usterek oraz śledzenie postępów w ich naprawie. Chcemy budować społeczność świadomych i zaangażowanych mieszkańców, którzy współtworzą lepsze, bezpieczniejsze i bardziej zadbane otoczenie.</p>
+
+        <p>Wierzymy, że technologia może wspierać transparentność i współpracę. Dzięki UsterkiApp problemy lokalne stają się widoczne, a ich rozwiązanie — łatwiejsze, szybsze i bardziej dostępne niż kiedykolwiek wcześniej.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+ <div class="container">
+    <h2 class="text-center mb-5">Jak dodać zgłoszenie?</h2>
+    <div class="row g-4 justify-content-center">
+      
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 text-center shadow-sm border-0">
+          <div class="card-body">
+            <i class="fas fa-user-plus fa-2x text-primary mb-3"></i>
+            <h5 class="card-title">1. Stwórz konto i zaloguj się</h5>
+            <p class="card-text">Zarejestruj się, wypełniając krótki formularz i użyj swoich danych do zalogowania się. Możesz zarejestrować się <a href="/rejestracja">tutaj</a> lub zalogować się <a href="/logowanie">tutaj</a>.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 text-center shadow-sm border-0">
+          <div class="card-body">
+            <i class="fas fa-plus-circle fa-2x text-success mb-3"></i>
+            <h5 class="card-title">2. Wypełnij formularz</h5>
+            <p class="card-text">Dodaj zgłoszenie: opisz usterkę i dodaj lokalizację.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 text-center shadow-sm border-0">
+          <div class="card-body">
+            <i class="fas fa-user fa-2x text-warning mb-3"></i>
+            <h5 class="card-title">3. Śledź status</h5>
+            <p class="card-text">O zmianie statusu twojego zgłoszenia będziemi cię infomować na bieżąco.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 text-center shadow-sm border-0">
+          <div class="card-body">
+            <i class="fas fa-comment fa-2x text-danger mb-3"></i>
+            <h5 class="card-title">4. Komentuj i aktualizuj informacje</h5>
+            <p class="card-text">Rozmawiaj o swojej sprawie oraz o innych zgłoszeniach ze społecznością.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <section class="mb-4">
+    <h2 class="text-center mb-5 mt-5">Twórcy projektu</h2>
+      <p>Aplikacja został stworzony przez zespół studentów w ramach projektu zaliczeniowego przedmiotu Projektowanie i programowanie systemów internetowych I:</p>
+      <ul>
+        <li>Paweł Kruk – frontend, UX/UI</li>
+        <li>Robert Kuźba – backend, baza danych</li>
+        <li>Szymon Mikołajek – testowanie</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <div id="footer"></div>
+</div>
+  <script>
+fetch("includes/navbar.html").then(res => res.text()).then(html => {
+  document.getElementById("navbar").innerHTML = html;
+
+  const user = JSON.parse(localStorage.getItem("loggedUser"));
+  const userLabel = document.getElementById("userLabel");
+  const usernameNav = document.getElementById("usernameNav");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const mojeZgloszenia = document.getElementById("mojeZgloszenia");
+
+  if (userLabel) userLabel.textContent = `Zalogowany jako: ${user.username}`;
+  if (usernameNav && user?.username) usernameNav.textContent = user.username;
+  if (mojeZgloszenia) {
+    mojeZgloszenia.addEventListener("click", () => {
+      window.location.href = "/moje-zgloszenia";
+    });
+  }
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("loggedUser");
+      window.location.href = "/logowanie";
+    });
+  }
+});
+
+    fetch("includes/footer.html")
+      .then(res => res.text())
+      .then(html => document.getElementById("footer").innerHTML = html);
+  </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

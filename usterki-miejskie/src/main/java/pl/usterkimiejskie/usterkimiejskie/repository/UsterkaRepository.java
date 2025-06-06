@@ -16,15 +16,13 @@ public interface UsterkaRepository extends JpaRepository<Usterka, Long> {
 
     // Przykładowe metody zapytań, które mogą się przydać:
 
-    // Znajdź wszystkie usterki w danym mieście
-    List<Usterka> findByMiasto(String miasto);
 
     // Znajdź wszystkie usterki o danym statusie
     List<Usterka> findByStatus(StatusUsterki status);
 
     // Znajdź wszystkie usterki zgłoszone przez danego użytkownika
-    List<Usterka> findByZgloszonaPrzez(User zgloszonaPrzez);
+//    List<Usterka> findByUser(User zgloszonaPrzez);
 
     // Znajdź wszystkie usterki w danym mieście i o danym statusie
-    List<Usterka> findByMiastoAndStatus(String miasto, StatusUsterki status);
+//    List<Usterka> findByMiastoAndStatus(String miasto, StatusUsterki status);
 }

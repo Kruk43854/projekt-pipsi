@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <title>System zgłaszania usterek</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<div id="navbar"></div>
+
+<div class="flex-grow-1">
+  <header class="bg-image vh-100" style="margin-top: -56px; background-image: url('img/tlo.jpg'); background-size: cover; background-position: center;">
+    <div class="mask" style="background-color: rgba(0, 0, 0, 0.6); height: 101%;">
+      <div class="container h-100 d-flex justify-content-center align-items-center">
+        <div class="text-white text-center">
+          <h1 class="display-4 fw-bold">Zgłaszanie usterek miejskich</h1>
+          <p class="lead">Zgłaszaj, śledź i reaguj na problemy w swojej okolicy.</p>
+          <a href="/logowanie" class="btn btn-light btn-lg mt-3 me-2">Zaloguj się</a>
+          <a href="/rejestracja" class="btn btn-outline-light btn-lg mt-3">Zarejestruj się</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="bg-light py-5">
+    <div class="container">
+      <h2 class="text-center mb-4">Dlaczego warto zgłaszać?</h2>
+      <div class="row text-center">
+        <div class="col-md-4 mb-3">
+          <i class="fas fa-tools fa-3x mb-2 text-primary"></i>
+          <h5>Skuteczna naprawa</h5>
+          <p>Każde zgłoszenie trafia do odpowiedniego działu i jest monitorowane.</p>
+        </div>
+        <div class="col-md-4 mb-3">
+          <i class="fas fa-map-marked-alt fa-3x mb-2 text-primary"></i>
+          <h5>Lokalizacja na mapie</h5>
+          <p>System umożliwia zgłaszanie z dokładną lokalizacją problemu.</p>
+        </div>
+        <div class="col-md-4 mb-3">
+          <i class="fas fa-users fa-3x mb-2 text-primary"></i>
+          <h5>Zaangażowana społeczność</h5>
+          <p>Razem tworzymy bezpieczniejsze i sprawniejsze otoczenie.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="py-5 bg-white">
+  <div class="container">
+    <h2 class="text-center mb-5">Jak dodać zgłoszenie?</h2>
+    <div class="row g-4 justify-content-center">
+      
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 text-center shadow-sm border-0">
+          <div class="card-body">
+            <i class="fas fa-user-plus fa-2x text-primary mb-3"></i>
+            <h5 class="card-title">1. Stwórz konto</h5>
+            <p class="card-text">Zarejestruj się, wypełniając krótki formularz <a href="/rejestracja">tutaj</a>.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 text-center shadow-sm border-0">
+          <div class="card-body">
+            <i class="fas fa-sign-in-alt fa-2x text-success mb-3"></i>
+            <h5 class="card-title">2. Zaloguj się</h5>
+            <p class="card-text">Użyj swoich danych logowania, aby wejść na konto <a href="/logowanie">tutaj</a>.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 text-center shadow-sm border-0">
+          <div class="card-body">
+            <i class="fas fa-plus-circle fa-2x text-warning mb-3"></i>
+            <h5 class="card-title">3. Wypełnij formularz</h5>
+            <p class="card-text">Przejdź do strony <a href="/dodaj-usterke">dodawania usterki</a> i otwórz formularz zgłoszenia.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 text-center shadow-sm border-0">
+          <div class="card-body">
+            <i class="fas fa-map-marker-alt fa-2x text-danger mb-3"></i>
+            <h5 class="card-title">4. Zaznacz i opisz</h5>
+            <p class="card-text">Wskaż lokalizację na mapie i opisz problem, aby zgłoszenie trafiło do systemu.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+</div>
+
+<div id="footer"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+
+<script>
+
+fetch("includes/navbar.html").then(res => res.text()).then(html => {
+  document.getElementById("navbar").innerHTML = html;
+
+  const user = JSON.parse(localStorage.getItem("loggedUser"));
+  const userLabel = document.getElementById("userLabel");
+  const usernameNav = document.getElementById("usernameNav");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const mojeZgloszenia = document.getElementById("mojeZgloszenia");
+
+  if (userLabel) userLabel.textContent = `Zalogowany jako: ${user.username}`;
+  if (usernameNav && user?.username) usernameNav.textContent = user.username;
+  if (mojeZgloszenia) {
+    mojeZgloszenia.addEventListener("click", () => {
+      window.location.href = "/moje-zgloszenia";
+    });
+  }
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("loggedUser");
+      window.location.href = "/logowanie";
+    });
+  }
+});
+
+
+    fetch("includes/footer.html")
+      .then(res => res.text())
+      .then(html => document.getElementById("footer").innerHTML = html);
+</script>
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

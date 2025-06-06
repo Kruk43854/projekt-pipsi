@@ -1,112 +1,42 @@
 package pl.usterkimiejskie.usterkimiejskie.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-// Usuń import lombok.Data jeśli dodajesz metody ręcznie
-import pl.usterkimiejskie.usterkimiejskie.entity.StatusUsterki;
+import jakarta.validation.constraints.NotNull;
 
-import java.time.LocalDateTime;
-
-// @Data // USUWAMY LUB ZASTĘPUJEMY @Getter, @Setter, @NoArgsConstructor ITD.
 public class UsterkaDto {
 
     private Long id;
 
-    @NotBlank(message = "Miasto nie może być puste")
-    @Size(min = 2, max = 100, message = "Nazwa miasta musi mieć od 2 do 100 znaków")
-    private String miasto;
+    @NotBlank(message = "Tytuł usterki nie może być pusty")
+    private String tytul;
 
-    @NotBlank(message = "Ulica nie może być pusta")
-    @Size(min = 2, max = 100, message = "Nazwa ulicy musi mieć od 2 do 100 znaków")
-    private String ulica;
+    private String status;
+    private String adres;
+    private double lat;
+    private double lng;
 
-    private String numerDomu;
+    private Long userId;
 
-    @NotBlank(message = "Opis usterki nie może być pusty")
-    @Size(min = 10, max = 1000, message = "Opis musi mieć od 10 do 1000 znaków")
-    private String opis;
+    // Gettery i settery
 
-    private StatusUsterki status;
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    private String zgloszonaPrzezUsername;
+    public String getTytul() { return tytul; }
+    public void setTytul(String tytul) { this.tytul = tytul; }
 
-    private LocalDateTime dataZgloszenia;
-    private LocalDateTime dataAktualizacji;
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
-    // Pusty konstruktor (ważny dla niektórych frameworków, np. Jackson do deserializacji JSON)
-    public UsterkaDto() {
-    }
+    public String getAdres() { return adres; }
+    public void setAdres(String adres) { this.adres = adres; }
 
-    // Gettery i Settery
-    public Long getId() {
-        return id;
-    }
+    public double getLat() { return lat; }
+    public void setLat(double lat) { this.lat = lat; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public double getLng() { return lng; }
+    public void setLng(double lng) { this.lng = lng; }
 
-    public String getMiasto() {
-        return miasto;
-    }
-
-    public void setMiasto(String miasto) {
-        this.miasto = miasto;
-    }
-
-    public String getUlica() {
-        return ulica;
-    }
-
-    public void setUlica(String ulica) {
-        this.ulica = ulica;
-    }
-
-    public String getNumerDomu() {
-        return numerDomu;
-    }
-
-    public void setNumerDomu(String numerDomu) {
-        this.numerDomu = numerDomu;
-    }
-
-    public String getOpis() {
-        return opis;
-    }
-
-    public void setOpis(String opis) {
-        this.opis = opis;
-    }
-
-    public StatusUsterki getStatus() {
-        return status;
-    }
-
-    public void setStatus(StatusUsterki status) {
-        this.status = status;
-    }
-
-    public String getZgloszonaPrzezUsername() {
-        return zgloszonaPrzezUsername;
-    }
-
-    public void setZgloszonaPrzezUsername(String zgloszonaPrzezUsername) {
-        this.zgloszonaPrzezUsername = zgloszonaPrzezUsername;
-    }
-
-    public LocalDateTime getDataZgloszenia() {
-        return dataZgloszenia;
-    }
-
-    public void setDataZgloszenia(LocalDateTime dataZgloszenia) {
-        this.dataZgloszenia = dataZgloszenia;
-    }
-
-    public LocalDateTime getDataAktualizacji() {
-        return dataAktualizacji;
-    }
-
-    public void setDataAktualizacji(LocalDateTime dataAktualizacji) {
-        this.dataAktualizacji = dataAktualizacji;
-    }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
 }
