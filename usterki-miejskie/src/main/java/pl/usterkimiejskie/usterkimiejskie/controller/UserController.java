@@ -31,11 +31,7 @@ public class UserController {
     public ResponseEntity<User> create(@RequestBody User user) {
         // Hasło → zakodowane i ustawione w polu passwordHash
 
-        System.out.println("Rejestracja: ");
-        System.out.println("-> username: " + user.getUsername());
-        System.out.println("-> password: " + user.getPassword());
-        System.out.println("-> email: " + user.getEmail());
-        System.out.println("-> rola: " + user.getRola());
+
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
