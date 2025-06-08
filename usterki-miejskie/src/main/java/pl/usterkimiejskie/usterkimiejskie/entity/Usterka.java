@@ -15,23 +15,25 @@ public class Usterka {
     private Long id;
 
     @Column(nullable = false, length = 100)
-    private String tytul;
+    private String miasto;
 
-    @Column(nullable = false, length = 50)
-    private String status;
+    @Column(nullable = false, length = 150)
+    private String ulica;
 
-    @Column(nullable = false, length = 100)
-    private String adres;
+    @Column(name = "numer_domu", length = 20)
+    private String numerDomu;
 
-    @Column(nullable = true, columnDefinition = "TEXT")
+    @Lob
+    @Column(nullable = false)
     private String opis;
 
-    private double lat;
-    private double lng;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
+    private StatusUsterki status;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "zgloszona_przez_user_id")
-    private User zglaszajacy;
+    private User zgloszonaPrzez;
 
     @CreationTimestamp
     @Column(name = "data_zgloszenia", nullable = false, updatable = false)
@@ -41,49 +43,92 @@ public class Usterka {
     @Column(name = "data_aktualizacji")
     private LocalDateTime dataAktualizacji;
 
-
-    public Usterka(){
-
+    // Pusty konstruktor wymagany przez JPA
+    public Usterka() {
     }
 
-    public Usterka(String tytul, String status, String adres, String opis,
-                   double lat, double lng, User zglaszajacy) {
-        this.tytul = tytul;
-        this.status = status;
-        this.adres = adres;
+    // Konstruktor z argumentami (przydatny)
+    public Usterka(String miasto, String ulica, String numerDomu, String opis, User zgloszonaPrzez) {
+        this.miasto = miasto;
+        this.ulica = ulica;
+        this.numerDomu = numerDomu;
         this.opis = opis;
-        this.lat = lat;
-        this.lng = lng;
-        this.zglaszajacy = zglaszajacy;
+        this.zgloszonaPrzez = zgloszonaPrzez;
+        this.status = StatusUsterki.ZGLOSZONA; // Domyślny status
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    // Gettery i Settery
+    public Long getId() {
+        return id;
+    }
 
-    public String getTytul() { return tytul; }
-    public void setTytul(String tytul) { this.tytul = tytul; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public String getMiasto() {
+        return miasto;
+    }
 
-    public String getAdres() { return adres; }
-    public void setAdres(String miasto) { this.adres = miasto; }
+    public void setMiasto(String miasto) {
+        this.miasto = miasto;
+    }
 
-    public String getOpis() { return opis; }
-    public void setOpis(String opis) { this.opis = opis; }
+    public String getUlica() {
+        return ulica;
+    }
 
-    public double getLat() { return lat; }
-    public void setLat(double lat) { this.lat = lat; }
+    public void setUlica(String ulica) {
+        this.ulica = ulica;
+    }
 
-    public double getLng() { return lng; }
-    public void setLng(double lng) { this.lng = lng; }
+    public String getNumerDomu() {
+        return numerDomu;
+    }
 
-    public User getZglaszajacy() { return zglaszajacy; }
-    public void setZglaszajacy(User zglaszajacy) { this.zglaszajacy = zglaszajacy; }
+    public void setNumerDomu(String numerDomu) {
+        this.numerDomu = numerDomu;
+    }
 
-    public LocalDateTime getDataZgloszenia() { return dataZgloszenia; }
-    public void setDataZgloszenia(LocalDateTime dataZgloszenia) { this.dataZgloszenia = dataZgloszenia; }
+    public String getOpis() {
+        return opis;
+    }
 
-    public LocalDateTime getDataAktualizacji() { return dataAktualizacji; }
-    public void setDataAktualizacji(LocalDateTime dataAktualizacji) { this.dataAktualizacji = dataAktualizacji; }
+    public void setOpis(String opis) {
+        this.opis = opis;
+    }
+
+    public StatusUsterki getStatus() {
+        return status;
+    }
+
+    public void setStatus(StatusUsterki status) {
+        this.status = status;
+    }
+
+    public User getZgloszonaPrzez() {
+        return zgloszonaPrzez;
+    }
+
+    public void setZgloszonaPrzez(User zgloszonaPrzez) {
+        this.zgloszonaPrzez = zgloszonaPrzez;
+    }
+
+    public LocalDateTime getDataZgloszenia() {
+        return dataZgloszenia;
+    }
+
+    public void setDataZgloszenia(LocalDateTime dataZgloszenia) {
+        // Zazwyczaj zarządzane przez @CreationTimestamp, więc setter może nie być używany
+        this.dataZgloszenia = dataZgloszenia;
+    }
+
+    public LocalDateTime getDataAktualizacji() {
+        return dataAktualizacji;
+    }
+
+    public void setDataAktualizacji(LocalDateTime dataAktualizacji) {
+        // Zazwyczaj zarządzane przez @UpdateTimestamp, więc setter może nie być używany
+        this.dataAktualizacji = dataAktualizacji;
+    }
 }

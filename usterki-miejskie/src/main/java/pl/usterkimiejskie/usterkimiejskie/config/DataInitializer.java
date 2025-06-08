@@ -1,40 +1,56 @@
-package pl.usterkimiejskie.usterkimiejskie.config;
+package pl.usterkimiejskie.usterkimiejskie.config; // Upewnij się, że pakiet jest poprawny
 
-import jakarta.annotation.PostConstruct;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.password.PasswordEncoder; // Upewnij się, że masz ten import i zależność security
+import pl.usterkimiejskie.usterkimiejskie.entity.Role;
 import pl.usterkimiejskie.usterkimiejskie.entity.User;
-import pl.usterkimiejskie.usterkimiejskie.entity.Usterka;
+import pl.usterkimiejskie.usterkimiejskie.repository.RoleRepository;
 import pl.usterkimiejskie.usterkimiejskie.repository.UserRepository;
-import pl.usterkimiejskie.usterkimiejskie.repository.UsterkaRepository;
 
-import java.util.List;
+import java.util.Set;
 
-@Component
+@Configuration
 public class DataInitializer {
 
-    private final UserRepository userRepository;
-    private final UsterkaRepository usterkaRepository;
-    private final PasswordEncoder passwordEncoder;
+    @Bean
+    CommandLineRunner initTestUser(
+            UserRepository userRepository,
+            RoleRepository roleRepository,
+            PasswordEncoder passwordEncoder // Wstrzykujemy PasswordEncoder
+    ) {
+        return args -> {
+            // Nazwa użytkownika, którego potrzebujemy w UsterkaController
+            String testUsername = "testuser";
+            String testUserEmail = "jakisemail@gmail.com";
+            String testUserPassword = "haslo"; // Hasło, które zahaszujemy
 
-    public DataInitializer(UserRepository userRepository, UsterkaRepository usterkaRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.usterkaRepository = usterkaRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+            // 1. Upewnij się, że rola ROLE_USER istnieje (powinna być z migracji V1)
+            Role userRole = roleRepository.findByName("ROLE_USER")
+                    .orElseGet(() -> {
+                        // Jeśli rola nie istnieje, a powinna być z migracji, to jest problem.
+                        // Dla bezpieczeństwa można ją tu stworzyć, ale lepiej, żeby migracja działała.
+                        System.err.println("OSTRZEŻENIE: Rola ROLE_USER nie została znaleziona, tworzenie...");
+                        return roleRepository.save(new Role("ROLE_USER"));
+                    });
 
-    @PostConstruct
-    public void init() {
-        if (userRepository.count() == 0) {
-            User maciej = new User("Maciej", "maciej@example.com", passwordEncoder.encode("test"), "USER");
-            User admin = new User("Admin", "admin@example.com", passwordEncoder.encode("admin"), "ADMIN");
-            userRepository.saveAll(List.of(maciej, admin));
+            // 2. Sprawdź, czy użytkownik "testuser" już istnieje
+            if (userRepository.findByUsername(testUsername).isEmpty()) {
+                // Jeśli nie istnieje, utwórz go
+                User testUser = new User();
+                testUser.setUsername(testUsername);
+                testUser.setEmail(testUserEmail);
+                // Użyj PasswordEncoder do zahaszowania hasła
+                testUser.setPasswordHash(passwordEncoder.encode(testUserPassword));
+                testUser.setEnabled(true);
+                testUser.setRoles(Set.of(userRole)); // Przypisz rolę ROLE_USER
 
-            Usterka u1 = new Usterka("Zepsute światło uliczne", "Oczekuje", "Legnica, Słowiańska 5", null, 51.2098, 16.1615, maciej);
-            Usterka u2 = new Usterka("Dziura w chodniku", "W trakcie", "Legnica, Wrocławska 7", null, 51.2105, 16.1622, maciej);
-            Usterka u3 = new Usterka("Nieświecące przejście", "Naprawione", "Legnica, Piastowska 10", null, 51.2110, 16.1630, maciej);
-
-            usterkaRepository.saveAll(List.of(u1, u2, u3));
-        }
+                userRepository.save(testUser);
+                System.out.println("INFO: Utworzono użytkownika testowego: " + testUsername + " z rolą ROLE_USER");
+            } else {
+                System.out.println("INFO: Użytkownik testowy '" + testUsername + "' już istnieje.");
+            }
+        };
     }
 }

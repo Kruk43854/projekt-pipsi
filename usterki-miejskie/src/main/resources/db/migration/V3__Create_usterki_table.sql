@@ -1,18 +1,10 @@
 CREATE TABLE usterki (
                          id BIGINT AUTO_INCREMENT PRIMARY KEY,               -- Unikalny identyfikator usterki
-                         tytul VARCHAR(255) NOT NULL,
-
---                          miasto VARCHAR(100) NOT NULL,                       -- Miasto, w którym wystąpiła usterka
---                          ulica VARCHAR(150) NOT NULL,                        -- Ulica
---                          numer_domu VARCHAR(20),                             -- Numer domu/budynku (opcjonalnie)
-                         adres VARCHAR(150) NOT NULL,
-
-
-                         lat DECIMAL(9,6),
-                         lng DECIMAL(9,6),
-
---                          opis TEXT NOT NULL,                                 -- Szczegółowy opis usterki
-                         status VARCHAR(50) NOT NULL DEFAULT 'Oczekuje',    -- Aktualny status usterki
+                         miasto VARCHAR(100) NOT NULL,                       -- Miasto, w którym wystąpiła usterka
+                         ulica VARCHAR(150) NOT NULL,                        -- Ulica
+                         numer_domu VARCHAR(20),                             -- Numer domu/budynku (opcjonalnie)
+                         opis TEXT NOT NULL,                                 -- Szczegółowy opis usterki
+                         status VARCHAR(50) NOT NULL DEFAULT 'ZGLOSZONA',    -- Aktualny status usterki
     -- Domyślnie 'ZGLOSZONA', inne możliwe wartości:
     -- POTWIERDZONA, W_TRAKCIE_NAPRAWY, NAPRAWIONA, ODRZUCONA
 
@@ -36,6 +28,6 @@ CREATE TABLE usterki (
 );
 
 -- Indeksy dla często wyszukiwanych kolumn
--- CREATE INDEX idx_usterki_miasto ON usterki(miasto);
+CREATE INDEX idx_usterki_miasto ON usterki(miasto);
 CREATE INDEX idx_usterki_status ON usterki(status);
 CREATE INDEX idx_usterki_zgloszona_przez ON usterki(zgloszona_przez_user_id);

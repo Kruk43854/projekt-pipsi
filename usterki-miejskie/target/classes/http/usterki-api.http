@@ -1,0 +1,47 @@
+### Logowanie użytkownika (nowyUser)
+# Oczekiwany status: 200 OK
+# @name loginNowyUser
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "nowyUser",
+  "password": "password123"
+}
+
+> {%
+    client.global.set("accessTokenNowyUser", response.body.accessToken);
+    client.log("Otrzymano accessToken dla nowyUser: " + response.body.accessToken);
+%}
+
+###
+
+### Logowanie użytkownika (testuser - z DataInitializer)
+# Oczekiwany status: 200 OK
+# @name loginTestUser
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "password"
+}
+
+> {%
+    client.global.set("accessTokenTestUser", response.body.accessToken);
+    client.log("Otrzymano accessToken dla testUser: " + response.body.accessToken);
+%}
+
+###
+
+### Logowanie z błędnym hasłem
+# Oczekiwany status: 401 Unauthorized
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "nowyUser",
+  "password": "blednehaslo"
+}
+
+###
