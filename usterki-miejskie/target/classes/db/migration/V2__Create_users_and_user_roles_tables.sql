@@ -3,21 +3,21 @@ CREATE TABLE users (
                        id BIGINT AUTO_INCREMENT PRIMARY KEY,           -- Unikalny identyfikator użytkownika (BIGINT, bo może być ich dużo)
                        username VARCHAR(100) NOT NULL UNIQUE,          -- Nazwa użytkownika (login), musi być unikalna
                        email VARCHAR(255) NOT NULL UNIQUE,             -- Adres e-mail, musi być unikalny
-                       password_hash VARCHAR(255) NOT NULL,            -- Zahaszowane hasło użytkownika
-                       enabled BOOLEAN NOT NULL DEFAULT TRUE,          -- Czy konto użytkownika jest aktywne (domyślnie tak)
+                       password_hash VARCHAR(255) NOT NULL,                 -- Zahaszowane hasło użytkownika
+                       rola VARCHAR(50) NOT NULL DEFAULT 'user',
                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP -- Data utworzenia konta (domyślnie aktualny czas)
     -- Można dodać: updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP (dla MySQL)
     -- lub pole updated_at, które będzie aktualizowane przez aplikację
 );
 
 -- Tworzenie tabeli łączącej użytkowników z rolami (relacja wiele-do-wielu)
-CREATE TABLE user_roles (
-                            user_id BIGINT NOT NULL,                        -- Klucz obcy wskazujący na ID użytkownika
-                            role_id INT NOT NULL,                           -- Klucz obcy wskazujący na ID roli
-                            PRIMARY KEY (user_id, role_id),                 -- Klucz główny złożony, aby para (user_id, role_id) była unikalna
-                            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, -- Jeśli użytkownik zostanie usunięty, jego wpisy w tej tabeli też
-                            FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE  -- Jeśli rola zostanie usunięta, jej wpisy w tej tabeli też
-);
+-- CREATE TABLE user_roles (
+--                             user_id BIGINT NOT NULL,                        -- Klucz obcy wskazujący na ID użytkownika
+--                             role_id INT NOT NULL,                           -- Klucz obcy wskazujący na ID roli
+--                             PRIMARY KEY (user_id, role_id),                 -- Klucz główny złożony, aby para (user_id, role_id) była unikalna
+--                             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, -- Jeśli użytkownik zostanie usunięty, jego wpisy w tej tabeli też
+--                             FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE  -- Jeśli rola zostanie usunięta, jej wpisy w tej tabeli też
+-- );
 
 -- Dodajmy przykładowego użytkownika i przypiszmy mu role
 -- Pamiętaj, że hasła powinny być hashowane w aplikacji przed zapisaniem do bazy!
