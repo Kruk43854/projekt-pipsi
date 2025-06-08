@@ -1,6 +1,9 @@
 package pl.usterkimiejskie.usterkimiejskie.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,12 +14,15 @@ public class Komentarz {
     private Long id;
 
     private String tresc;
+
+    @CreationTimestamp
     private LocalDateTime dataDodania;
 
     @ManyToOne
     private User autor;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "usterka_id")
     private Usterka usterka;
 

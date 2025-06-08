@@ -50,32 +50,53 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     let mapa;
-const user = JSON.parse(localStorage.getItem("loggedUser"));
 
+    async function checkSession() {
+  const res = await fetch("http://localhost:8080/api/auth/session", {
+    credentials: "include"
+  });
+  if (!res.ok) {
+    window.location.href = "/logowanie";
+    return null;
+  }
+  return await res.json();
+}
+checkSession().then(user => {
+  if (!user || user.rola !== "ADMIN") {
+    window.location.href = "/error/403.html"; 
+  }
+});
 
 fetch("includes/admin_navbar.html")
   .then(res => res.text())
-  .then(html => {
+  .then(async html => {
     document.getElementById("navbar").innerHTML = html;
 
-    const user = JSON.parse(localStorage.getItem("loggedUser"));
+    const user = await checkSession();
+    if (!user) return;
+
     const adminNav = document.getElementById("adminUsernameNav");
     const logoutBtn = document.getElementById("logoutBtn");
 
-    if (adminNav && user?.username) {
+    if (adminNav && user.username) {
       adminNav.textContent = user.username;
     }
+
+    if (user.rola !== "ADMIN") {
+      window.location.href = "/error/403.html";
+      return;
+    }
+
     if (logoutBtn) {
-      logoutBtn.addEventListener("click", () => {
-        localStorage.removeItem("loggedUser");
+      logoutBtn.addEventListener("click", async () => {
+        await fetch("http://localhost:8080/api/auth/logout", {
+          method: "POST"
+        });
         window.location.href = "/logowanie";
       });
     }
-          if(user.rola !== "ADMIN"){
-    window.location.href = "/error/403.html";
-  }
-
   });
+
   
     fetch("includes/admin_footer.html")
       .then(res => res.text())
@@ -174,16 +195,28 @@ fetch("http://localhost:8080/api/usterki/" + idParam)
     .catch(err => console.error("Błąd ładowania komentarzy:", err));
 }
 
-function dodajKomentarz() {
+async function checkSession() {
+  const res = await fetch("http://localhost:8080/api/auth/session");
+  if (!res.ok) {
+    alert("Sesja wygasła. Zaloguj się ponownie.");
+    window.location.href = "/logowanie";
+    return null;
+  }
+  return await res.json();
+}
+
+async function dodajKomentarz() {
   const tresc = document.getElementById("nowy-komentarz").value.trim();
   if (!tresc) return;
+
+  const user = await checkSession();
+  if (!user) return;
 
   fetch("http://localhost:8080/api/komentarze", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       tresc: tresc,
-      userId: user.id,
       usterkaId: idParam
     })
   }).then(res => {

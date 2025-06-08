@@ -28,30 +28,54 @@
 
   <script>
 
-fetch("includes/navbar.html").then(res => res.text()).then(html => {
-  document.getElementById("navbar").innerHTML = html;
-
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
-  const userLabel = document.getElementById("userLabel");
-  const usernameNav = document.getElementById("usernameNav");
-  const logoutBtn = document.getElementById("logoutBtn");
-  const mojeZgloszenia = document.getElementById("mojeZgloszenia");
-
-  if (userLabel) userLabel.textContent = `Zalogowany jako: ${user.username}`;
-  if (usernameNav && user?.username) usernameNav.textContent = user.username;
-  if (mojeZgloszenia) {
-    mojeZgloszenia.addEventListener("click", () => {
-      window.location.href = "/moje-zgloszenia";
-    });
+  async function checkSession() {
+  const res = await fetch("http://localhost:8080/api/auth/session", {
+    credentials: "include"
+  });
+  if (!res.ok) {
+    window.location.href = "/logowanie";
+    return null;
   }
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      localStorage.removeItem("loggedUser");
-      window.location.href = "/logowanie";
-    });
-  }
-});
+  return await res.json();
+}
 
+fetch("includes/navbar.html")
+  .then(res => res.text())
+  .then(async html => {
+    document.getElementById("navbar").innerHTML = html;
+
+    const user = await checkSession();
+
+    const authSection = document.getElementById("authSection");
+    const userLabel = document.getElementById("userLabel");
+    const usernameNav = document.getElementById("usernameNav");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    if (!user) {
+      if (authSection) authSection.classList.add("d-none");
+      return;
+    }
+
+    if (authSection) authSection.classList.remove("d-none");
+
+    if (userLabel) {
+      userLabel.textContent = `Zalogowany jako: ${user.username}`;
+    }
+
+    if (usernameNav) {
+      usernameNav.textContent = user.username;
+    }
+
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", async () => {
+        await fetch("http://localhost:8080/api/auth/logout", {
+          method: "POST",
+          credentials: "include"
+        });
+        window.location.href = "/logowanie";
+      });
+    }
+  });
 
 
     fetch("includes/footer.html")
@@ -59,48 +83,48 @@ fetch("includes/navbar.html").then(res => res.text()).then(html => {
       .then(html => document.getElementById("footer").innerHTML = html);
 
       
-    const user = JSON.parse(localStorage.getItem("loggedUser"));
+checkSession().then(user => {
+  if (!user || !user.id) {
+    window.location.href = "/logowanie";
+    return;
+  }
 
-    if (!user || !user.id) {
-      window.location.href = "/logowanie"; 
-    } else {
-      fetch("http://localhost:8080/api/usterki")
-        .then(res => res.json())
-        .then(data => {
-          console.log("Zalogowany użytkownik:", user);
-    console.log("Pobrane usterki:", data);
-    console.log("Pierwsza usterka:", data[0]); 
+  fetch("http://localhost:8080/api/usterki", {
+    credentials: "include"
+  })
+    .then(res => res.json())
+    .then(data => {
+      const moje = data.filter(u => u.userId === user.id);
+      const container = document.getElementById("usterki");
 
-          const moje = data.filter(u => u.userId === user.id);
-          const container = document.getElementById("usterki");
-
-          if (moje.length === 0) {
-            document.getElementById("brak-zgloszen").classList.remove("d-none");
-            return;
-          }
-
-          moje.forEach(u => {
-            const div = document.createElement("div");
-            div.className = "col-md-6 col-lg-4";
-            div.innerHTML = `
-              <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                  <h5 class="card-title">${u.tytul}</h5>
-                  <p>Status: <span class="badge ${getStatusClass(u.status)}">${u.status}</span></p>
-                  <a href="/usterka?id=${u.id}" class="btn btn-primary">Szczegóły</a>
-                </div>
-              </div>
-            `;
-            container.appendChild(div);
-          });
-        });
-
-      function getStatusClass(status) {
-        if (status === "Naprawione") return "bg-success text-white";
-        if (status === "W trakcie") return "bg-warning text-dark";
-        return "bg-info text-white";
+      if (moje.length === 0) {
+        document.getElementById("brak-zgloszen").classList.remove("d-none");
+        return;
       }
-    }
+
+      moje.forEach(u => {
+        const div = document.createElement("div");
+        div.className = "col-md-6 col-lg-4";
+        div.innerHTML = `
+          <div class="card h-100 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">${u.tytul}</h5>
+              <p>Status: <span class="badge ${getStatusClass(u.status)}">${u.status}</span></p>
+              <a href="/usterka?id=${u.id}" class="btn btn-primary">Szczegóły</a>
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    });
+});
+
+function getStatusClass(status) {
+  if (status === "Naprawione") return "bg-success text-white";
+  if (status === "W trakcie") return "bg-warning text-dark";
+  return "bg-info text-white";
+}
+
 
   </script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

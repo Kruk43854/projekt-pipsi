@@ -49,7 +49,6 @@
   return res.json();
 })
 .then(user => {
-localStorage.setItem("loggedUser", JSON.stringify(user));
   if (user.rola === "ADMIN") {
     window.location.href = "/admin-lista";
   } else {

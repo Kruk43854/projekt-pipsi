@@ -105,29 +105,45 @@
 
 <script>
 
-fetch("includes/navbar.html").then(res => res.text()).then(html => {
-  document.getElementById("navbar").innerHTML = html;
 
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
-  const userLabel = document.getElementById("userLabel");
-  const usernameNav = document.getElementById("usernameNav");
-  const logoutBtn = document.getElementById("logoutBtn");
-  const mojeZgloszenia = document.getElementById("mojeZgloszenia");
 
-  if (userLabel) userLabel.textContent = `Zalogowany jako: ${user.username}`;
-  if (usernameNav && user?.username) usernameNav.textContent = user.username;
-  if (mojeZgloszenia) {
-    mojeZgloszenia.addEventListener("click", () => {
-      window.location.href = "/moje-zgloszenia";
-    });
-  }
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      localStorage.removeItem("loggedUser");
-      window.location.href = "/logowanie";
-    });
-  }
-});
+fetch("includes/navbar.html")
+  .then(res => res.text())
+  .then(async html => {
+    document.getElementById("navbar").innerHTML = html;
+
+    const user = await checkSession();
+
+    const authSection = document.getElementById("authSection");
+    const userLabel = document.getElementById("userLabel");
+    const usernameNav = document.getElementById("usernameNav");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    if (!user) {
+      if (authSection) authSection.classList.add("d-none");
+      return;
+    }
+
+    if (authSection) authSection.classList.remove("d-none");
+
+    if (userLabel) {
+      userLabel.textContent = `Zalogowany jako: ${user.username} (${user.rola === "ADMIN" ? "Administrator" : "Użytkownik"})`;
+    }
+
+    if (usernameNav) {
+      usernameNav.textContent = user.username;
+    }
+
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", async () => {
+        await fetch("http://localhost:8080/api/auth/logout", {
+          method: "POST",
+          credentials: "include"
+        });
+        window.location.href = "/logowanie";
+      });
+    }
+  });
 
 
     fetch("includes/footer.html")

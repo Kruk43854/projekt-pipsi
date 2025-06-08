@@ -67,30 +67,54 @@
     const filtrStatus = document.getElementById("filtrStatus");
     const filtrTyp = document.getElementById("filtrTyp");
 
-
-fetch("includes/navbar.html").then(res => res.text()).then(html => {
-  document.getElementById("navbar").innerHTML = html;
-
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
-  const userLabel = document.getElementById("userLabel");
-  const usernameNav = document.getElementById("usernameNav");
-  const logoutBtn = document.getElementById("logoutBtn");
-  const mojeZgloszenia = document.getElementById("mojeZgloszenia");
-
-  if (userLabel) userLabel.textContent = `Zalogowany jako: ${user.username}`;
-  if (usernameNav && user?.username) usernameNav.textContent = user.username;
-  if (mojeZgloszenia) {
-    mojeZgloszenia.addEventListener("click", () => {
-      window.location.href = "/moje-zgloszenia";
-    });
+    async function checkSession() {
+  const res = await fetch("http://localhost:8080/api/auth/session", {
+    credentials: "include"
+  });
+  if (!res.ok) {
+    window.location.href = "/logowanie";
+    return null;
   }
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      localStorage.removeItem("loggedUser");
-      window.location.href = "/logowanie";
-    });
-  }
-});
+  return await res.json();
+}
+
+fetch("includes/navbar.html")
+  .then(res => res.text())
+  .then(async html => {
+    document.getElementById("navbar").innerHTML = html;
+
+    const user = await checkSession();
+
+    const authSection = document.getElementById("authSection");
+    const userLabel = document.getElementById("userLabel");
+    const usernameNav = document.getElementById("usernameNav");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    if (!user) {
+      if (authSection) authSection.classList.add("d-none");
+      return;
+    }
+
+    if (authSection) authSection.classList.remove("d-none");
+
+    if (userLabel) {
+      userLabel.textContent = `Zalogowany jako: ${user.username}`;
+    }
+
+    if (usernameNav) {
+      usernameNav.textContent = user.username;
+    }
+
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", async () => {
+        await fetch("http://localhost:8080/api/auth/logout", {
+          method: "POST",
+          credentials: "include"
+        });
+        window.location.href = "/logowanie";
+      });
+    }
+  });
 
 
 

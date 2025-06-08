@@ -47,29 +47,45 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
 
-fetch("includes/navbar.html").then(res => res.text()).then(html => {
-  document.getElementById("navbar").innerHTML = html;
 
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
-  const userLabel = document.getElementById("userLabel");
-  const usernameNav = document.getElementById("usernameNav");
-  const logoutBtn = document.getElementById("logoutBtn");
-  const mojeZgloszenia = document.getElementById("mojeZgloszenia");
 
-  if (userLabel) userLabel.textContent = `Zalogowany jako: ${user.username}`;
-  if (usernameNav && user?.username) usernameNav.textContent = user.username;
-  if (mojeZgloszenia) {
-    mojeZgloszenia.addEventListener("click", () => {
-      window.location.href = "/moje-zgloszenia";
-    });
-  }
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      localStorage.removeItem("loggedUser");
-      window.location.href = "/logowanie";
-    });
-  }
-});
+fetch("includes/navbar.html")
+  .then(res => res.text())
+  .then(async html => {
+    document.getElementById("navbar").innerHTML = html;
+
+    const user = await checkSession();
+
+    const authSection = document.getElementById("authSection");
+    const userLabel = document.getElementById("userLabel");
+    const usernameNav = document.getElementById("usernameNav");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    if (!user) {
+      if (authSection) authSection.classList.add("d-none");
+      return;
+    }
+
+    if (authSection) authSection.classList.remove("d-none");
+
+    if (userLabel) {
+      userLabel.textContent = `Zalogowany jako: ${user.username}`;
+    }
+
+    if (usernameNav) {
+      usernameNav.textContent = user.username;
+    }
+
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", async () => {
+        await fetch("http://localhost:8080/api/auth/logout", {
+          method: "POST",
+          credentials: "include"
+        });
+        window.location.href = "/logowanie";
+      });
+    }
+  });
 
 
 
@@ -142,7 +158,7 @@ function ladujKomentarze() {
     .then(res => res.json())
     .then(data => {
       if (!Array.isArray(data)) {
-        throw new Error("Oczekiwano tablicy komentarzy");
+        throw new Error("Błąd");
       }
       const container = document.getElementById("komentarze-container");
       container.innerHTML = "";
@@ -151,7 +167,7 @@ function ladujKomentarze() {
         komentarzDiv.className = "card shadow-sm p-3";
         komentarzDiv.innerHTML = `
           <div class="d-flex justify-content-between mb-2">
-            <strong>${k.autor?.username || "Nieznany użytkownik"}</strong>
+            <strong>${k.autorUsername || "Nieznany użytkownik"}</strong>
             <small class="text-muted">${new Date(k.dataDodania).toLocaleString()}</small>
           </div>
           <div>${k.tresc}</div>
@@ -162,17 +178,28 @@ function ladujKomentarze() {
     .catch(err => console.error("Błąd ładowania komentarzy:", err));
 }
 
-function dodajKomentarz() {
-  const tresc = document.getElementById("nowy-komentarz").value.trim();
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
-  if (!tresc || !user) return;
 
+async function checkSession() {
+  const res = await fetch("http://localhost:8080/api/auth/session");
+  if (!res.ok) {
+    alert("Musisz być zalogowany.");
+    window.location.href = "/logowanie";
+    return null;
+  }
+  return await res.json();
+}
+
+async function dodajKomentarz() {
+  const tresc = document.getElementById("nowy-komentarz").value.trim();
+  if (!tresc) return;
+
+  const user = await checkSession();
+  if (!user) return; // przerwij, jeśli brak sesji
   fetch("http://localhost:8080/api/komentarze", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
   tresc: tresc,
-  userId: user.id,
   usterkaId: idParam
     })
   }).then(res => {

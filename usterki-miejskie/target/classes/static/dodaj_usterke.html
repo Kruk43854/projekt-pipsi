@@ -50,29 +50,44 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
 
-fetch("includes/navbar.html").then(res => res.text()).then(html => {
-  document.getElementById("navbar").innerHTML = html;
+fetch("includes/navbar.html")
+  .then(res => res.text())
+  .then(async html => {
+    document.getElementById("navbar").innerHTML = html;
 
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
-  const userLabel = document.getElementById("userLabel");
-  const usernameNav = document.getElementById("usernameNav");
-  const logoutBtn = document.getElementById("logoutBtn");
-  const mojeZgloszenia = document.getElementById("mojeZgloszenia");
+    const user = await checkSession();
 
-  if (userLabel) userLabel.textContent = `Zalogowany jako: ${user.username}`;
-  if (usernameNav && user?.username) usernameNav.textContent = user.username;
-  if (mojeZgloszenia) {
-    mojeZgloszenia.addEventListener("click", () => {
-      window.location.href = "/moje-zgloszenia";
-    });
-  }
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      localStorage.removeItem("loggedUser");
-      window.location.href = "/logowanie";
-    });
-  }
-});
+    const authSection = document.getElementById("authSection");
+    const userLabel = document.getElementById("userLabel");
+    const usernameNav = document.getElementById("usernameNav");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    if (!user) {
+      if (authSection) authSection.classList.add("d-none");
+      return;
+    }
+
+    if (authSection) authSection.classList.remove("d-none");
+
+    if (userLabel) {
+      userLabel.textContent = `Zalogowany jako: ${user.username}`;
+    }
+
+    if (usernameNav) {
+      usernameNav.textContent = user.username;
+    }
+
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", async () => {
+        await fetch("http://localhost:8080/api/auth/logout", {
+          method: "POST",
+          credentials: "include"
+        });
+        window.location.href = "/logowanie";
+      });
+    }
+  });
+
 
 
 
@@ -104,6 +119,14 @@ fetch("includes/navbar.html").then(res => res.text()).then(html => {
       document.getElementById("adres").value = fullAddress || "Nieznany adres";
     });
 
+    async function checkSession() {
+  const res = await fetch("http://localhost:8080/api/auth/session", { credentials: "include" });
+  if (!res.ok) {
+    window.location.href = "/logowanie";
+    return null;
+  }
+  return await res.json();
+}
 
     document.getElementById("usterkaForm").addEventListener("submit", async function (e) {
       e.preventDefault();
@@ -112,7 +135,7 @@ fetch("includes/navbar.html").then(res => res.text()).then(html => {
       const adres = document.getElementById("adres").value;
       const alertBox = document.getElementById("alert");
       const successBox = document.getElementById("success");
-      const user = JSON.parse(localStorage.getItem("loggedUser"));
+      const user = await checkSession();if (!user) return;
 
       if (!selectedCoords || !adres) {
         alertBox.classList.remove("d-none");
@@ -126,7 +149,6 @@ fetch("includes/navbar.html").then(res => res.text()).then(html => {
   adres,
   lat: selectedCoords.lat,
   lng: selectedCoords.lng,
-  userId: user.id
 };
 
 const res = await fetch("http://localhost:8080/api/usterki", {

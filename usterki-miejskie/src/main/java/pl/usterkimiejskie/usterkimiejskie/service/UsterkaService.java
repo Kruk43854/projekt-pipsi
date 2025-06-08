@@ -8,11 +8,16 @@ import pl.usterkimiejskie.usterkimiejskie.repository.UsterkaRepository;
 import pl.usterkimiejskie.usterkimiejskie.repository.UserRepository;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 import java.time.LocalDateTime;
 
 @Service
 public class UsterkaService {
+
+    private static final Logger logger = LoggerFactory.getLogger(UsterkaService.class);
 
     private final UsterkaRepository usterkaRepository;
     private final UserRepository userRepository;
@@ -22,7 +27,7 @@ public class UsterkaService {
         this.userRepository = userRepository;
     }
 
-    private UsterkaDto mapToDto(Usterka usterka) {
+    public UsterkaDto mapToDto(Usterka usterka) {
         UsterkaDto dto = new UsterkaDto();
         dto.setId(usterka.getId());
         dto.setTytul(usterka.getTytul());
@@ -41,33 +46,33 @@ public class UsterkaService {
                 .collect(Collectors.toList());
     }
 
-    public UsterkaDto createUsterka(UsterkaDto dto) {
-       Usterka usterka = new Usterka();
+    public Usterka createUsterka(UsterkaDto dto, User user) {
+        Usterka usterka = new Usterka();
         usterka.setTytul(dto.getTytul());
         usterka.setAdres(dto.getAdres());
         usterka.setLat(dto.getLat());
         usterka.setLng(dto.getLng());
         usterka.setStatus("Oczekuje");
         usterka.setDataZgloszenia(LocalDateTime.now());
+        usterka.setZglaszajacy(user);
 
-        if (dto.getUserId() != null) {
-            User user = userRepository.findById(dto.getUserId())
-                    .orElseThrow(() -> new RuntimeException("User not found with ID: " + dto.getUserId()));
-            usterka.setZglaszajacy(user);
-        }
+        logger.debug("Tworzenie nowej usterki: tytul='{}', adres='{}', userId={}",
+                dto.getTytul(), dto.getAdres(), dto.getUserId());
 
-        Usterka saved = usterkaRepository.save(usterka);
-        return mapToDto(saved);
+        return usterkaRepository.save(usterka);
     }
+
+    
     public UsterkaDto findById(Long id) {
         Usterka usterka = usterkaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Nie znaleziono usterki"));
         return mapToDto(usterka);
     }
-    public void zmienStatus(Long id, String status) {
+    public Usterka zmienStatus(Long id, String status) {
         Usterka usterka = usterkaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Nie znaleziono usterki"));
         usterka.setStatus(status);
-        usterkaRepository.save(usterka);
+        logger.info("Zmieniono status usterki ID={}  na '{}'", id, status);
+        return usterkaRepository.save(usterka);
     }
 }
